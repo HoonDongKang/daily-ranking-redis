@@ -1,0 +1,24 @@
+{
+    "name": "be",
+    "version": "1.0.0",
+    "description": "",
+    "license": "ISC",
+    "author": "",
+    "type": "commonjs",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "start": "node dist/app.js",
+        "build": "tsc -p .",
+        "dev": "nodemon --watch \"src/**/*.ts\" --exec \"ts-node\" src/app.ts"
+    },
+    "dependencies": {
+        "express": "^5.2.1"
+    },
+    "devDependencies": {
+        "@types/express": "^5.0.6",
+        "@types/node": "^25.0.3",
+        "nodemon": "^3.1.11",
+        "typescript": "^5.9.3"
+    }
+}
