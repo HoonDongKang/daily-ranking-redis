@@ -12,45 +12,33 @@ export interface User {
     bestRecord: number | null;
 }
 
-const STORAGE_KEY = "timer-game-user";
-
-const adjectives = [
-    "빠른",
-    "정확한",
-    "날카로운",
-    "차분한",
-    "신속한",
-    "집중하는",
-    "끈기있는",
-    "도전적인",
-];
-const nouns = ["사자", "독수리", "호랑이", "용", "늑대", "매", "표범", "곰"];
-
-function generateRandomUsername(): string {
-    const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
-    const noun = nouns[Math.floor(Math.random() * nouns.length)];
-    const num = Math.floor(Math.random() * 1000);
-    return `${adj}${noun}${num}`;
+export interface GlobalRecord extends GameRecord {
+    username: string;
 }
+
+const STORAGE_KEY = "timer-game-user";
+const GLOBAL_RECORDS_KEY = "timer-game-global-records";
 
 function generateUserId(): string {
     return `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 }
 
-export function getUser(): User {
+export function getUser(): User | null {
     const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-        const user = JSON.parse(stored);
-        user.records = user.records.map((r: GameRecord) => ({
-            ...r,
-            timestamp: new Date(r.timestamp),
-        }));
-        return user;
-    }
+    if (!stored) return null;
 
+    const user = JSON.parse(stored);
+    user.records = user.records.map((r: GameRecord) => ({
+        ...r,
+        timestamp: new Date(r.timestamp),
+    }));
+    return user;
+}
+
+export function createUser(nickname: string): User {
     const newUser: User = {
         id: generateUserId(),
-        username: generateRandomUsername(),
+        username: nickname,
         records: [],
         bestRecord: null,
     };
@@ -63,8 +51,9 @@ export function saveUser(user: User): void {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
 }
 
-export function updateUsername(newUsername: string): User {
+export function updateUsername(newUsername: string): User | null {
     const user = getUser();
+    if (!user) return null;
     user.username = newUsername;
     saveUser(user);
     return user;
@@ -72,9 +61,11 @@ export function updateUsername(newUsername: string): User {
 
 export function addRecord(time: number): { user: User; record: GameRecord } {
     const user = getUser();
-    const TIME = Number.parseInt(import.meta.env.VITE_TIME);
+    if (!user) throw new Error("User not found");
+    const TIME = import.meta.env.VITE_TIME;
     const standardTime = TIME * 1000;
-    const difference = Math.abs(time - standardTime);
+
+    const difference = time - standardTime;
 
     const record: GameRecord = {
         id: `record_${Date.now()}`,
@@ -85,7 +76,8 @@ export function addRecord(time: number): { user: User; record: GameRecord } {
 
     user.records.unshift(record);
 
-    if (user.bestRecord === null || difference < user.bestRecord) {
+    const absDiff = Math.abs(difference);
+    if (user.bestRecord === null || absDiff < Math.abs(user.bestRecord)) {
         user.bestRecord = difference;
     }
 
@@ -95,7 +87,32 @@ export function addRecord(time: number): { user: User; record: GameRecord } {
     }
 
     saveUser(user);
+
+    // Add to global records
+    const globalRecord: GlobalRecord = { ...record, username: user.username };
+    const globalRecords = getGlobalRecords();
+    globalRecords.push(globalRecord);
+    localStorage.setItem(GLOBAL_RECORDS_KEY, JSON.stringify(globalRecords));
+
     return { user, record };
+}
+
+export function getGlobalRecords(): GlobalRecord[] {
+    const data = localStorage.getItem(GLOBAL_RECORDS_KEY);
+    if (!data) return [];
+    return JSON.parse(data).map((r: GlobalRecord) => ({
+        ...r,
+        timestamp: new Date(r.timestamp),
+    }));
+}
+
+export function getGlobalRanking(): GlobalRecord[] {
+    const records = getGlobalRecords();
+    return records.sort((a, b) => Math.abs(a.difference) - Math.abs(b.difference));
+}
+
+export function logout(): void {
+    localStorage.removeItem(STORAGE_KEY);
 }
 
 export function formatTime(ms: number): string {
@@ -112,10 +129,10 @@ export function formatDifference(diff: number): string {
 export function getAccuracyLevel(
     difference: number
 ): "perfect" | "excellent" | "good" | "fair" | "poor" {
-    const diff = Math.abs(difference);
-    if (diff <= 50) return "perfect";
-    if (diff <= 200) return "excellent";
-    if (diff <= 500) return "good";
-    if (diff <= 1000) return "fair";
+    const absDiff = Math.abs(difference);
+    if (absDiff <= 50) return "perfect";
+    if (absDiff <= 200) return "excellent";
+    if (absDiff <= 500) return "good";
+    if (absDiff <= 1000) return "fair";
     return "poor";
 }

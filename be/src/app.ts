@@ -1,12 +1,25 @@
-import express, { Request, Response, NextFunction } from "express";
+import express from "express";
+import "dotenv/config";
+import { connectRedis } from "./middlewares/redis";
 
-const app = express();
-const port = 3000;
+export const app = express();
+const port = process.env.PORT;
 
-app.get("/welcome", (req: Request, res: Response, next: NextFunction) => {
-    res.send("welcome!");
-});
+export const bootstrap = async () => {
+    await connectRedis();
 
-app.listen(port, () => {
-    console.log(`Server listening on port: ${port}`);
-});
+    app.use(express.json());
+    // app.use("/api", apiRouter);
+};
+
+(async () => {
+    try {
+        await bootstrap();
+        app.listen(3000, () => {
+            console.log(`Server is Listening on ${port}`);
+        });
+    } catch (e) {
+        console.error("Server failed to start", e);
+        process.exit(1);
+    }
+})();

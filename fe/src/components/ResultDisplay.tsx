@@ -45,12 +45,11 @@ const accuracyConfig = {
 };
 
 export default function ResultDisplay({ record }: ResultDisplayProps) {
-    const TIME = Number.parseInt(import.meta.env.VITE_TIME);
-    const standardTime = TIME * 1000;
-
     const level = getAccuracyLevel(record.difference);
     const config = accuracyConfig[level];
     const Icon = config.icon;
+    const time = import.meta.env.VITE_TIME;
+    const standardTime = time * 1000;
 
     const difference = record.time - standardTime;
     const sign = difference >= 0 ? "+" : "-";
@@ -85,12 +84,6 @@ export default function ResultDisplay({ record }: ResultDisplayProps) {
                     <span className={`font-digital text-xl ${config.colorClass}`}>
                         {sign}
                         {formatTime(Math.abs(difference))}초
-                    </span>
-                </div>
-                <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">오차</span>
-                    <span className={`font-digital text-lg ${config.colorClass}`}>
-                        {formatTime(record.difference)}초
                     </span>
                 </div>
             </div>
