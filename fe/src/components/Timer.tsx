@@ -3,10 +3,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Play, Square, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
+    addRecord,
     formatTime,
     // addRecord,
     getAccuracyLevel,
-    formatDifference,
     type GameRecord,
 } from "@/lib/userStore";
 import ResultDisplay from "./ResultDisplay";
@@ -49,10 +49,10 @@ export default function Timer({ onRecordAdded }: TimerProps) {
             const finalTime = Date.now() - startTimeRef.current;
             setDisplayTime(finalTime);
 
-            // const { record } = addRecord(finalTime);
-            // setLastRecord(record);
-            // setShowResult(true);
-            // onRecordAdded();
+            const { record } = addRecord(finalTime);
+            setLastRecord(record);
+            setShowResult(true);
+            onRecordAdded();
         }
 
         setIsRunning(false);

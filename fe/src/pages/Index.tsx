@@ -3,7 +3,7 @@ import Header from "@/components/Header";
 import Timer from "@/components/Timer";
 import RecordHistory from "@/components/RecordHistory";
 import NicknameEntry from "@/components/NicknameEntry";
-import { type User } from "@/lib/userStore";
+import { getUser, type User } from "@/lib/userStore";
 
 export default function Index() {
     const [user, setUser] = useState<User | null>(null);
@@ -11,12 +11,14 @@ export default function Index() {
     const [refreshKey, setRefreshKey] = useState(0);
 
     useEffect(() => {
-        setUser(null);
+        const existingUser = getUser();
+        setUser(existingUser);
         setIsLoading(false);
     }, []);
 
     const handleRecordAdded = () => {
-        setUser(null);
+        const existingUser = getUser();
+        setUser(existingUser);
         setRefreshKey((prev) => prev + 1);
     };
 

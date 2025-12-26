@@ -8,17 +8,33 @@ export interface GameRecord {
 }
 
 export interface User {
+    id: string;
     nickname: string;
-    records: [];
+    records: GameRecord[];
     bestRecord: number | null;
 }
 
 export interface GlobalRecord extends GameRecord {
-    username: string;
+    nickname: string;
 }
 
 const STORAGE_KEY = "timer-game-user";
-const GLOBAL_RECORDS_KEY = "timer-game-global-records";
+
+function generateUserId(): string {
+    return `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+}
+
+export function getUser(): User | null {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (!stored) return null;
+
+    const user = JSON.parse(stored);
+    user.records = user.records.map((r: GameRecord) => ({
+        ...r,
+        timestamp: new Date(r.timestamp),
+    }));
+    return user;
+}
 
 export async function createUser(nickname: string): Promise<User | undefined> {
     try {
@@ -27,12 +43,15 @@ export async function createUser(nickname: string): Promise<User | undefined> {
             body: JSON.stringify({ nickname }),
         });
 
-        const user: User = {
+        const newUser: User = {
+            id: generateUserId(),
             nickname: response.user || "Unknown",
             records: [],
+            bestRecord: null,
         };
 
-        return user;
+        saveUser(newUser);
+        return newUser;
     } catch (error) {
         if (error instanceof ApiError) {
             if (error.code === "NICKNAME_DUPLICATE") {
@@ -49,18 +68,62 @@ export async function createUser(nickname: string): Promise<User | undefined> {
     }
 }
 
+export function saveUser(user: User): void {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+}
+
+export function addRecord(time: number): { user: User; record: GameRecord } {
+    const user = getUser();
+    if (!user) throw new Error("User not found");
+
+    const TIME = import.meta.env.VITE_TIME;
+    const standardTime = TIME * 1000;
+
+    const difference = time - standardTime;
+
+    const record: GameRecord = {
+        id: `record_${Date.now()}`,
+        time,
+        difference,
+        timestamp: new Date(),
+    };
+
+    user.records.unshift(record);
+
+    const absDiff = Math.abs(difference);
+    if (user.bestRecord === null || absDiff < Math.abs(user.bestRecord)) {
+        user.bestRecord = difference;
+    }
+
+    if (user.records.length > 50) {
+        user.records = user.records.slice(0, 50);
+    }
+
+    saveUser(user);
+
+    // // Add to global records
+    // const globalRecord: GlobalRecord = { ...record, nickname: user.nickname };
+    // const globalRecords = getGlobalRecords();
+    // globalRecords.push(globalRecord);
+    // localStorage.setItem(GLOBAL_RECORDS_KEY, JSON.stringify(globalRecords));
+
+    return { user, record };
+}
+
 export function getGlobalRecords(): GlobalRecord[] {
-    const data = localStorage.getItem(GLOBAL_RECORDS_KEY);
-    if (!data) return [];
-    return JSON.parse(data).map((r: GlobalRecord) => ({
-        ...r,
-        timestamp: new Date(r.timestamp),
-    }));
+    return [];
+    // const data = localStorage.getItem(GLOBAL_RECORDS_KEY);
+    // if (!data) return [];
+    // return JSON.parse(data).map((r: GlobalRecord) => ({
+    //     ...r,
+    //     timestamp: new Date(r.timestamp),
+    // }));
 }
 
 export function getGlobalRanking(): GlobalRecord[] {
-    const records = getGlobalRecords();
-    return records.sort((a, b) => Math.abs(a.difference) - Math.abs(b.difference));
+    return [];
+    // const records = getGlobalRecords();
+    // return records.sort((a, b) => Math.abs(a.difference) - Math.abs(b.difference));
 }
 
 export function logout(): void {

@@ -115,7 +115,7 @@ export default function RecordHistory({ user }: RecordHistoryProps) {
                                             animate={{ opacity: 1, x: 0 }}
                                             transition={{ delay: index * 0.03 }}
                                             className={`flex justify-between items-center p-3 rounded-lg ${
-                                                record.username === user.username
+                                                record.nickname === user.nickname
                                                     ? "bg-primary/20 border border-primary/30"
                                                     : "bg-secondary/50"
                                             }`}
@@ -124,7 +124,7 @@ export default function RecordHistory({ user }: RecordHistoryProps) {
                                                 {getRankBadge(index + 1)}
                                                 <div>
                                                     <span className="font-medium">
-                                                        {record.username}
+                                                        {record.nickname}
                                                     </span>
                                                     <span className="font-digital text-sm text-muted-foreground ml-2">
                                                         {formatTime(record.time)}초
