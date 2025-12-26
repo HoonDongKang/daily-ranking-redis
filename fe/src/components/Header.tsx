@@ -12,11 +12,10 @@ import {
 
 interface HeaderProps {
     user: User;
-    onUserUpdate: (user: User) => void;
     onLogout: () => void;
 }
 
-export default function Header({ user, onUserUpdate, onLogout }: HeaderProps) {
+export default function Header({ user, onLogout }: HeaderProps) {
     const handleLogout = () => {
         logout();
         onLogout();
@@ -39,7 +38,7 @@ export default function Header({ user, onUserUpdate, onLogout }: HeaderProps) {
             <div className="flex items-center gap-2">
                 <div className="hidden sm:block text-right mr-2">
                     <p className="text-sm text-muted-foreground">플레이어</p>
-                    <p className="font-medium text-foreground">{user.username}</p>
+                    <p className="font-medium text-foreground">{user.nickname}</p>
                 </div>
 
                 <Dialog>
@@ -52,7 +51,7 @@ export default function Header({ user, onUserUpdate, onLogout }: HeaderProps) {
                         <DialogHeader>
                             <DialogTitle className="font-digital">설정</DialogTitle>
                         </DialogHeader>
-                        <UserSettings user={user} onUserUpdate={onUserUpdate} />
+                        <UserSettings user={user} />
                     </DialogContent>
                 </Dialog>
 

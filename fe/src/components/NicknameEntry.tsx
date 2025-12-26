@@ -32,7 +32,6 @@ export default function NicknameEntry({ onEnter }: NicknameEntryProps) {
         const user = await createUser(trimmed);
 
         if (!user) return;
-
         onEnter(user);
     };
     const TIME = import.meta.env.VITE_TIME;

@@ -10,6 +10,7 @@ export interface GameRecord {
 export interface User {
     nickname: string;
     records: [];
+    bestRecord: number | null;
 }
 
 export interface GlobalRecord extends GameRecord {
@@ -21,13 +22,13 @@ const GLOBAL_RECORDS_KEY = "timer-game-global-records";
 
 export async function createUser(nickname: string): Promise<User | undefined> {
     try {
-        const response = await apiRequest<Partial<User>>("/api/users", {
+        const response = await apiRequest<{ success: boolean; user: string }>("/api/users", {
             method: "POST",
             body: JSON.stringify({ nickname }),
         });
 
         const user: User = {
-            nickname: response.nickname || "Unknown",
+            nickname: response.user || "Unknown",
             records: [],
         };
 

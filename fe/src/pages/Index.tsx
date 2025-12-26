@@ -20,10 +20,6 @@ export default function Index() {
         setRefreshKey((prev) => prev + 1);
     };
 
-    const handleUserUpdate = (updatedUser: User) => {
-        setUser(updatedUser);
-    };
-
     const handleEnter = (newUser: User) => {
         setUser(newUser);
     };
@@ -48,7 +44,7 @@ export default function Index() {
 
     return (
         <div className="min-h-screen flex flex-col">
-            <Header user={user} onUserUpdate={handleUserUpdate} onLogout={handleLogout} />
+            <Header user={user} onLogout={handleLogout} />
 
             <main className="flex-1 container mx-auto px-4 py-8">
                 <div className="grid lg:grid-cols-[1fr_350px] gap-8 items-start">
