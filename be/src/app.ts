@@ -1,6 +1,8 @@
 import express from "express";
 import "dotenv/config";
 import { connectRedis } from "./middlewares/redis";
+import { apiRouter } from "./router";
+import { errorHandler } from "./middlewares/errorHandler";
 
 export const app = express();
 const port = process.env.PORT;
@@ -9,7 +11,9 @@ export const bootstrap = async () => {
     await connectRedis();
 
     app.use(express.json());
-    // app.use("/api", apiRouter);
+    app.use("/api", apiRouter);
+
+    app.use(errorHandler);
 };
 
 (async () => {
