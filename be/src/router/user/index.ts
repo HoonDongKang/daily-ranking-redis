@@ -52,8 +52,6 @@ userRouter.post("/", async (req, res) => {
             user: nickname,
         });
     } catch (error) {
-        if (error instanceof HttpError) {
-            throw error;
-        }
+        throw error;
     }
 });
