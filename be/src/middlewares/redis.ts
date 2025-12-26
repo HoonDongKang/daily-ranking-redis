@@ -5,7 +5,7 @@ const REDIS_PASSWORD = process.env.REDIS_PASSWORD;
 const REDIS_HOST = process.env.REDIS_HOST;
 const REDIS_PORT = Number.parseInt(process.env.REDIS_PORT || "0");
 
-const redisClient = createClient({
+export const redisClient = createClient({
     username: "default",
     password: REDIS_PASSWORD,
     socket: {
