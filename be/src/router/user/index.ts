@@ -22,7 +22,6 @@ const setKeyExpiration = async (key: string): Promise<void> => {
 
     if (ttl === -1) {
         const secondsUntilTomorrow = getSecondsUntilTomorrow();
-        console.log(secondsUntilTomorrow);
 
         await redisClient.expire(key, secondsUntilTomorrow);
     }
@@ -50,6 +49,7 @@ userRouter.post("/", async (req, res) => {
 
         res.status(201).send({
             success: true,
+            user: nickname,
         });
     } catch (error) {
         if (error instanceof HttpError) {

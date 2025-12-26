@@ -2,7 +2,7 @@ import { useState } from "react";
 import { User as UserIcon, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { type User, updateUsername } from "@/lib/userStore";
+import { type User } from "@/lib/userStore";
 import { toast } from "sonner";
 
 interface UserSettingsProps {
@@ -14,26 +14,6 @@ export default function UserSettings({ user, onUserUpdate }: UserSettingsProps) 
     const [isEditing, setIsEditing] = useState(false);
     const [newUsername, setNewUsername] = useState(user.username);
 
-    const handleSave = () => {
-        const trimmed = newUsername.trim();
-        if (!trimmed) {
-            toast.error("닉네임을 입력해주세요");
-            return;
-        }
-        if (trimmed.length < 2 || trimmed.length > 12) {
-            toast.error("닉네임은 2-12자 사이여야 합니다");
-            return;
-        }
-        if (trimmed !== user.username) {
-            const updatedUser = updateUsername(trimmed);
-            if (updatedUser) {
-                onUserUpdate(updatedUser);
-                toast.success("닉네임이 변경되었습니다");
-            }
-        }
-        setIsEditing(false);
-    };
-
     const handleCancel = () => {
         setNewUsername(user.username);
         setIsEditing(false);
@@ -41,7 +21,7 @@ export default function UserSettings({ user, onUserUpdate }: UserSettingsProps) 
 
     return (
         <div className="space-y-4 py-4">
-            <div>
+            {/* <div>
                 <label className="text-sm text-muted-foreground block mb-2">
                     <UserIcon className="h-4 w-4 inline mr-2" />
                     닉네임
@@ -85,7 +65,7 @@ export default function UserSettings({ user, onUserUpdate }: UserSettingsProps) 
                         </Button>
                     </div>
                 )}
-            </div>
+            </div> */}
 
             <div className="pt-2 border-t border-border space-y-2">
                 <div className="flex justify-between text-sm">

@@ -1,3 +1,5 @@
+import { ApiError, apiRequest } from "./api";
+
 export interface GameRecord {
     id: string;
     time: number;
@@ -6,10 +8,8 @@ export interface GameRecord {
 }
 
 export interface User {
-    id: string;
-    username: string;
-    records: GameRecord[];
-    bestRecord: number | null;
+    nickname: string;
+    records: [];
 }
 
 export interface GlobalRecord extends GameRecord {
@@ -19,82 +19,33 @@ export interface GlobalRecord extends GameRecord {
 const STORAGE_KEY = "timer-game-user";
 const GLOBAL_RECORDS_KEY = "timer-game-global-records";
 
-function generateUserId(): string {
-    return `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-}
+export async function createUser(nickname: string): Promise<User | undefined> {
+    try {
+        const response = await apiRequest<Partial<User>>("/api/users", {
+            method: "POST",
+            body: JSON.stringify({ nickname }),
+        });
 
-export function getUser(): User | null {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (!stored) return null;
+        const user: User = {
+            nickname: response.nickname || "Unknown",
+            records: [],
+        };
 
-    const user = JSON.parse(stored);
-    user.records = user.records.map((r: GameRecord) => ({
-        ...r,
-        timestamp: new Date(r.timestamp),
-    }));
-    return user;
-}
+        return user;
+    } catch (error) {
+        if (error instanceof ApiError) {
+            if (error.code === "NICKNAME_DUPLICATE") {
+                alert("닉네임이 중복되었어요 😢");
+                return;
+            }
 
-export function createUser(nickname: string): User {
-    const newUser: User = {
-        id: generateUserId(),
-        username: nickname,
-        records: [],
-        bestRecord: null,
-    };
+            alert(error.message);
+            return;
+        }
 
-    saveUser(newUser);
-    return newUser;
-}
-
-export function saveUser(user: User): void {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
-}
-
-export function updateUsername(newUsername: string): User | null {
-    const user = getUser();
-    if (!user) return null;
-    user.username = newUsername;
-    saveUser(user);
-    return user;
-}
-
-export function addRecord(time: number): { user: User; record: GameRecord } {
-    const user = getUser();
-    if (!user) throw new Error("User not found");
-    const TIME = import.meta.env.VITE_TIME;
-    const standardTime = TIME * 1000;
-
-    const difference = time - standardTime;
-
-    const record: GameRecord = {
-        id: `record_${Date.now()}`,
-        time,
-        difference,
-        timestamp: new Date(),
-    };
-
-    user.records.unshift(record);
-
-    const absDiff = Math.abs(difference);
-    if (user.bestRecord === null || absDiff < Math.abs(user.bestRecord)) {
-        user.bestRecord = difference;
+        alert("알 수 없는 오류가 발생했어요");
+        throw error;
     }
-
-    // Keep only last 50 records
-    if (user.records.length > 50) {
-        user.records = user.records.slice(0, 50);
-    }
-
-    saveUser(user);
-
-    // Add to global records
-    const globalRecord: GlobalRecord = { ...record, username: user.username };
-    const globalRecords = getGlobalRecords();
-    globalRecords.push(globalRecord);
-    localStorage.setItem(GLOBAL_RECORDS_KEY, JSON.stringify(globalRecords));
-
-    return { user, record };
 }
 
 export function getGlobalRecords(): GlobalRecord[] {

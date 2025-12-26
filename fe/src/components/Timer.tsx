@@ -4,7 +4,7 @@ import { Play, Square, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     formatTime,
-    addRecord,
+    // addRecord,
     getAccuracyLevel,
     formatDifference,
     type GameRecord,
@@ -49,10 +49,10 @@ export default function Timer({ onRecordAdded }: TimerProps) {
             const finalTime = Date.now() - startTimeRef.current;
             setDisplayTime(finalTime);
 
-            const { record } = addRecord(finalTime);
-            setLastRecord(record);
-            setShowResult(true);
-            onRecordAdded();
+            // const { record } = addRecord(finalTime);
+            // setLastRecord(record);
+            // setShowResult(true);
+            // onRecordAdded();
         }
 
         setIsRunning(false);

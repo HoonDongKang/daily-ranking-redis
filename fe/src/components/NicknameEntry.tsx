@@ -12,7 +12,7 @@ export default function NicknameEntry({ onEnter }: NicknameEntryProps) {
     const [nickname, setNickname] = useState("");
     const [error, setError] = useState("");
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         const trimmed = nickname.trim();
@@ -29,7 +29,10 @@ export default function NicknameEntry({ onEnter }: NicknameEntryProps) {
             return;
         }
 
-        const user = createUser(trimmed);
+        const user = await createUser(trimmed);
+
+        if (!user) return;
+
         onEnter(user);
     };
     const TIME = import.meta.env.VITE_TIME;
