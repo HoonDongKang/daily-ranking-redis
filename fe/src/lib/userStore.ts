@@ -1,5 +1,5 @@
+import dayjs from "dayjs";
 import { ApiError, apiRequest } from "./api";
-
 export interface GameRecord {
     id: string;
     time: number;
@@ -12,6 +12,7 @@ export interface User {
     nickname: string;
     records: GameRecord[];
     bestRecord: number | null;
+    createdAt: number;
 }
 
 export interface GlobalRecord extends GameRecord {
@@ -24,11 +25,21 @@ function generateUserId(): string {
     return `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 }
 
+function isUserExpired(createdAt: number): boolean {
+    const expireAt = dayjs(createdAt).add(1, "day").startOf("day");
+
+    return dayjs().isAfter(expireAt);
+}
+
 export function getUser(): User | null {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (!stored) return null;
 
     const user = JSON.parse(stored);
+    if (isUserExpired(user.creatdAt)) {
+        logout();
+        return null;
+    }
     user.records = user.records.map((r: GameRecord) => ({
         ...r,
         timestamp: new Date(r.timestamp),
@@ -48,6 +59,7 @@ export async function createUser(nickname: string): Promise<User | undefined> {
             nickname: response.user || "Unknown",
             records: [],
             bestRecord: null,
+            createdAt: Date.now(),
         };
 
         saveUser(newUser);
