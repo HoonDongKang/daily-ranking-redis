@@ -2,13 +2,7 @@ import { useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, Square, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-    addRecord,
-    formatTime,
-    // addRecord,
-    getAccuracyLevel,
-    type GameRecord,
-} from "@/lib/userStore";
+import { addRecord, formatTime, getAccuracyLevel, type GameRecord } from "@/lib/userStore";
 import ResultDisplay from "./ResultDisplay";
 
 interface TimerProps {
@@ -40,7 +34,7 @@ export default function Timer({ onRecordAdded }: TimerProps) {
         animationFrameRef.current = requestAnimationFrame(updateTimer);
     }, [updateTimer]);
 
-    const stopTimer = useCallback(() => {
+    const stopTimer = useCallback(async () => {
         if (animationFrameRef.current) {
             cancelAnimationFrame(animationFrameRef.current);
         }
@@ -49,7 +43,7 @@ export default function Timer({ onRecordAdded }: TimerProps) {
             const finalTime = Date.now() - startTimeRef.current;
             setDisplayTime(finalTime);
 
-            const { record } = addRecord(finalTime);
+            const { record } = await addRecord(finalTime);
             setLastRecord(record);
             setShowResult(true);
             onRecordAdded();
@@ -70,7 +64,7 @@ export default function Timer({ onRecordAdded }: TimerProps) {
         startTimeRef.current = null;
     }, []);
 
-    const accuracyLevel = lastRecord ? getAccuracyLevel(lastRecord.difference) : null;
+    const accuracyLevel = lastRecord ? getAccuracyLevel(lastRecord.diff) : null;
 
     const getTimerColorClass = () => {
         if (!showResult || !accuracyLevel) return "text-primary";

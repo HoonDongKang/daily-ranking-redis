@@ -4,7 +4,7 @@ export interface GameRecord {
     nickname: string;
     type: "POSITIVE" | "NEGATIVE";
     diff: number;
-    timestamp: Date;
+    timestamp: number;
 }
 
 export interface User {
@@ -66,11 +66,6 @@ export async function createUser(nickname: string): Promise<User | undefined> {
         return newUser;
     } catch (error) {
         if (error instanceof ApiError) {
-            if (error.code === "NICKNAME_DUPLICATE") {
-                alert("닉네임이 중복되었어요 😢");
-                return;
-            }
-
             alert(error.message);
             return;
         }
@@ -84,7 +79,7 @@ export function saveUser(user: User): void {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
 }
 
-export function addRecord(time: number): { user: User; record: GameRecord } {
+export async function addRecord(time: number): Promise<{ user: User; record: GameRecord }> {
     const user = getUser();
     if (!user) throw new Error("User not found");
 
@@ -98,7 +93,7 @@ export function addRecord(time: number): { user: User; record: GameRecord } {
         nickname: user.nickname,
         diff: difference,
         type,
-        timestamp: new Date(),
+        timestamp: dayjs().valueOf(),
     };
 
     user.records.unshift(record);
@@ -113,14 +108,28 @@ export function addRecord(time: number): { user: User; record: GameRecord } {
     }
 
     saveUser(user);
-
-    // // Add to global records
-    // const globalRecord: GlobalRecord = { ...record, nickname: user.nickname };
-    // const globalRecords = getGlobalRecords();
-    // globalRecords.push(globalRecord);
-    // localStorage.setItem(GLOBAL_RECORDS_KEY, JSON.stringify(globalRecords));
+    await saveGlobalRanking(record);
 
     return { user, record };
+}
+
+export async function saveGlobalRanking(record: GameRecord) {
+    try {
+        const response = await apiRequest<{ member: string; score: string }>("/api/games", {
+            method: "POST",
+            body: JSON.stringify({ ...record }),
+        });
+
+        return response;
+    } catch (error) {
+        if (error instanceof ApiError) {
+            alert(error.message);
+            return;
+        }
+
+        alert("알 수 없는 오류가 발생했어요");
+        throw error;
+    }
 }
 
 export async function getGlobalRanking(): Promise<GameRecord[] | undefined> {

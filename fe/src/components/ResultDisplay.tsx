@@ -36,8 +36,8 @@ const accuracyConfig = {
         bgClass: "bg-warning/10 border-warning/30",
     },
     poor: {
-        label: "아쉬움",
-        description: "다시 도전해보세요!",
+        label: "아쉽지도 않아요",
+        description: "시간 감각이 조금 부족해보이네요 ㅋ",
         icon: AlertTriangle,
         colorClass: "text-destructive",
         bgClass: "bg-destructive/10 border-destructive/30",

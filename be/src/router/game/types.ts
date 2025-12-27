@@ -1,6 +1,8 @@
-export type User = {
+export type Record = {
     nickname: string;
+    type: diffTypes;
     diff: number;
+    timestamp: Date;
 };
 
 export type Result = {

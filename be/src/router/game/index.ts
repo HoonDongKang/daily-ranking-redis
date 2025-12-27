@@ -2,7 +2,7 @@ import express from "express";
 import dayjs from "../../utils/dayjs";
 import { redisClient } from "../../middlewares/redis";
 import { HttpError } from "../../errors/httpError";
-import { DIFF_TYPES, Result, User } from "./types";
+import { DIFF_TYPES, Result, Record } from "./types";
 import { GAME_ERRORS } from "./consts";
 
 export const gameRouter = express.Router();
@@ -12,12 +12,10 @@ const generateDailyRankingKey = (): string => {
     return `ranking:${today}`;
 };
 
-const generateUserMember = (user: User) => {
-    const { nickname, diff } = user;
-    const type = diff >= 0 ? DIFF_TYPES.POSITIVE : DIFF_TYPES.NEGATIVE;
-    const now = dayjs().valueOf();
+const generateUserMember = (record: Record) => {
+    const { nickname, timestamp, type } = record;
 
-    return `${nickname}:${type}:${now}`;
+    return `${nickname}:${type}:${timestamp}`;
 };
 const parseValue = (value: string) => {
     const [nickname, type, timestamp] = value.split(":");
@@ -36,7 +34,7 @@ const parseResults = (result: Result[]) => {
 gameRouter.get("/", async (req, res) => {
     try {
         const key = generateDailyRankingKey();
-        const results = await redisClient.zRangeByScoreWithScores(key, 0, 9);
+        const results = await redisClient.zRangeWithScores(key, 0, 9);
         const ranking = parseResults(results);
 
         res.status(200).send(ranking);
@@ -47,7 +45,7 @@ gameRouter.get("/", async (req, res) => {
 
 gameRouter.post("/", async (req, res) => {
     try {
-        const { nickname, diff } = req.body;
+        const { nickname, diff, timestamp, type } = req.body;
         if (!nickname || typeof diff !== "number" || Number.isNaN(diff)) {
             throw new HttpError(GAME_ERRORS.BAD_REQUEST);
         }
@@ -55,7 +53,7 @@ gameRouter.post("/", async (req, res) => {
         const key = generateDailyRankingKey();
 
         const score = Math.abs(diff);
-        const member = generateUserMember({ nickname, diff });
+        const member = generateUserMember({ nickname, diff, timestamp, type });
 
         await redisClient.zAdd(key, { value: member, score });
         await redisClient.zRemRangeByRank(key, 10, -1);
