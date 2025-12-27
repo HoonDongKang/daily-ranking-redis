@@ -57,7 +57,7 @@ export default function Index() {
 
                     {/* Records Section */}
                     <div className="lg:sticky lg:top-8">
-                        <RecordHistory key={refreshKey} user={user} />
+                        <RecordHistory key={refreshKey} user={user} time={TIME} />
                     </div>
                 </div>
             </main>

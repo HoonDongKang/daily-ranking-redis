@@ -1,9 +1,9 @@
 import dayjs from "dayjs";
 import { ApiError, apiRequest } from "./api";
 export interface GameRecord {
-    id: string;
-    time: number;
-    difference: number;
+    nickname: string;
+    type: "POSITIVE" | "NEGATIVE";
+    diff: number;
     timestamp: Date;
 }
 
@@ -92,11 +92,12 @@ export function addRecord(time: number): { user: User; record: GameRecord } {
     const standardTime = TIME * 1000;
 
     const difference = time - standardTime;
+    const type = difference >= 0 ? "POSITIVE" : "NEGATIVE";
 
     const record: GameRecord = {
-        id: `record_${Date.now()}`,
-        time,
-        difference,
+        nickname: user.nickname,
+        diff: difference,
+        type,
         timestamp: new Date(),
     };
 
@@ -122,20 +123,27 @@ export function addRecord(time: number): { user: User; record: GameRecord } {
     return { user, record };
 }
 
-export function getGlobalRecords(): GlobalRecord[] {
-    return [];
-    // const data = localStorage.getItem(GLOBAL_RECORDS_KEY);
-    // if (!data) return [];
-    // return JSON.parse(data).map((r: GlobalRecord) => ({
-    //     ...r,
-    //     timestamp: new Date(r.timestamp),
-    // }));
-}
+export async function getGlobalRanking(): Promise<GameRecord[] | undefined> {
+    try {
+        const response = await apiRequest<GameRecord[]>("/api/games", {
+            method: "GET",
+        });
 
-export function getGlobalRanking(): GlobalRecord[] {
-    return [];
-    // const records = getGlobalRecords();
-    // return records.sort((a, b) => Math.abs(a.difference) - Math.abs(b.difference));
+        return response;
+    } catch (error) {
+        if (error instanceof ApiError) {
+            if (error.code === "NICKNAME_DUPLICATE") {
+                alert("닉네임이 중복되었어요 😢");
+                return;
+            }
+
+            alert(error.message);
+            return;
+        }
+
+        alert("알 수 없는 오류가 발생했어요");
+        throw error;
+    }
 }
 
 export function logout(): void {

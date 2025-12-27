@@ -45,14 +45,15 @@ const accuracyConfig = {
 };
 
 export default function ResultDisplay({ record }: ResultDisplayProps) {
-    const level = getAccuracyLevel(record.difference);
+    const level = getAccuracyLevel(record.diff);
     const config = accuracyConfig[level];
     const Icon = config.icon;
     const time = import.meta.env.VITE_TIME;
-    const standardTime = time * 1000;
+    const baseTimeMs = Number(time) * 1000;
 
-    const difference = record.time - standardTime;
+    const difference = record.diff;
     const sign = difference >= 0 ? "+" : "-";
+    const userTime = baseTimeMs + difference;
 
     return (
         <motion.div
@@ -76,7 +77,7 @@ export default function ResultDisplay({ record }: ResultDisplayProps) {
                 <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">기록 시간</span>
                     <span className="font-digital text-xl text-foreground">
-                        {formatTime(record.time)}초
+                        {formatTime(userTime)}초
                     </span>
                 </div>
                 <div className="flex justify-between items-center">

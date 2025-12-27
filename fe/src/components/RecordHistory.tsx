@@ -10,9 +10,11 @@ import {
     getAccuracyLevel,
     getGlobalRanking,
 } from "@/lib/userStore";
+import { useEffect, useState } from "react";
 
 interface RecordHistoryProps {
     user: User;
+    time: number;
 }
 
 const accuracyColors = {
@@ -30,9 +32,15 @@ function getRankBadge(rank: number) {
     return <span className="w-5 text-center text-muted-foreground text-sm">{rank}</span>;
 }
 
-export default function RecordHistory({ user }: RecordHistoryProps) {
+export default function RecordHistory({ user, time }: RecordHistoryProps) {
     const { records, bestRecord } = user;
-    const globalRanking = getGlobalRanking();
+    const [globalRanking, setGlobalRanking] = useState<GameRecord[]>([]);
+
+    useEffect(() => {
+        getGlobalRanking().then((data) => {
+            setGlobalRanking(data || []);
+        });
+    }, []);
 
     return (
         <div className="glass-card p-4 neon-border">
@@ -84,13 +92,14 @@ export default function RecordHistory({ user }: RecordHistoryProps) {
                             <div className="space-y-2">
                                 {records.slice(0, 20).map((record, index) => (
                                     <RecordItem
-                                        key={record.id}
+                                        key={index}
                                         record={record}
                                         rank={index + 1}
                                         isBest={
                                             bestRecord !== null &&
-                                            Math.abs(record.difference) === Math.abs(bestRecord)
+                                            Math.abs(record.diff) === Math.abs(bestRecord)
                                         }
+                                        time={time}
                                     />
                                 ))}
                             </div>
@@ -110,7 +119,7 @@ export default function RecordHistory({ user }: RecordHistoryProps) {
                                     .slice(0, 50)
                                     .map((record: GlobalRecord, index: number) => (
                                         <motion.div
-                                            key={record.id}
+                                            key={index}
                                             initial={{ opacity: 0, x: -10 }}
                                             animate={{ opacity: 1, x: 0 }}
                                             transition={{ delay: index * 0.03 }}
@@ -127,18 +136,19 @@ export default function RecordHistory({ user }: RecordHistoryProps) {
                                                         {record.nickname}
                                                     </span>
                                                     <span className="font-digital text-sm text-muted-foreground ml-2">
-                                                        {formatTime(record.time)}초
+                                                        {formatTime(
+                                                            Number(time) * 1000 + record.diff
+                                                        )}
+                                                        초
                                                     </span>
                                                 </div>
                                             </div>
                                             <span
                                                 className={`text-sm ${
-                                                    accuracyColors[
-                                                        getAccuracyLevel(record.difference)
-                                                    ]
+                                                    accuracyColors[getAccuracyLevel(record.diff)]
                                                 }`}
                                             >
-                                                오차 {formatTime(Math.abs(record.difference))}
+                                                오차 {formatTime(Math.abs(record.diff))}
                                             </span>
                                         </motion.div>
                                     ))}
@@ -155,15 +165,19 @@ function RecordItem({
     record,
     rank,
     isBest,
+    time,
 }: {
     record: GameRecord;
     rank: number;
     isBest: boolean;
+    time: number;
 }) {
-    const level = getAccuracyLevel(record.difference);
+    const level = getAccuracyLevel(record.diff);
     const colorClass = accuracyColors[level];
-    const difference = record.difference;
+    const difference = record.diff;
     const sign = difference >= 0 ? "+" : "-";
+    const baseTimeMs = Number(time) * 1000;
+    const userTime = baseTimeMs + difference;
 
     return (
         <motion.div
@@ -183,9 +197,7 @@ function RecordItem({
                     {isBest ? "👑" : `#${rank}`}
                 </span>
                 <div>
-                    <span className="font-digital text-foreground">
-                        {formatTime(record.time)}초
-                    </span>
+                    <span className="font-digital text-foreground">{formatTime(userTime)}초</span>
                     <span className={`ml-2 text-sm ${colorClass}`}>
                         ({sign}
                         {formatTime(Math.abs(difference))})
